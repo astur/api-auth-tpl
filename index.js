@@ -1,15 +1,12 @@
 var express = require('express');
 var app = express();
-var mongoose = require('mongoose');
 var auth = require('basic-auth');
 var crypto = require('crypto');
 var hat = require('hat');
 
-mongoose.connect('mongodb://localhost/test', function(err){
-    if(err){console.log('Failed connection to database');}
-});
-
 //Model
+
+var mongoose = require('./db')
 
 var schema = new mongoose.Schema({
     username: {
