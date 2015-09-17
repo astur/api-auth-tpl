@@ -9,44 +9,48 @@ mongoose.connect('mongodb://localhost/test', function(err){
     if(err){console.log('Failed connection to database');}
 });
 
+//Model
+
 var schema = new mongoose.Schema({
-  username: {
-    type: String,
-    unique: true,
-    required: true
-  },
-  hash: {
-    type: String,
-    required: true
-  },
-  salt: {
-    type: String,
-    required: true
-  },
-  token: {
-    type: String,
-    required: true
-  }
+    username: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    hash: {
+        type: String,
+        required: true
+    },
+    salt: {
+        type: String,
+        required: true
+    },
+    token: {
+        type: String,
+        required: true
+    }
 });
 
 schema.methods.encryptPassword = function(password) {
-  return crypto.createHmac('sha1', this.salt).update(password).digest('hex');
+    return crypto.createHmac('sha1', this.salt).update(password).digest('hex');
 };
 
 schema.virtual('password')
-  .set(function(password) {
-    this._plainPassword = password;
-    this.salt = Math.random() + '';
-    this.hash = this.encryptPassword(password);
-  })
-  .get(function() { return this._plainPassword; });
+    .set(function(password) {
+        this._plainPassword = password;
+        this.salt = Math.random() + '';
+        this.hash = this.encryptPassword(password);
+    })
+    .get(function() { return this._plainPassword; });
 
 
 schema.methods.checkPassword = function(password) {
-  return this.encryptPassword(password) === this.hash;
+    return this.encryptPassword(password) === this.hash;
 };
 
 var User = mongoose.model('User', schema);
+
+//Middlewares
 
 function checkCredentials(req, res, next) {
     var u = auth(req);
@@ -69,11 +73,7 @@ function tokenAuth(req, res, next) {
     });
 }
 
-app.get('/', function(req, res) {
-    res.end('Hello world!');
-});
-
-app.get('/auth', checkCredentials, function(req, res, next) {
+function getToken(req, res, next) {
     var u = auth(req);
 
     User.findOne({username: u.name}, function(err, user){
@@ -83,9 +83,9 @@ app.get('/auth', checkCredentials, function(req, res, next) {
         }
         return res.json({token: user.token, message: 'User found'});
     });
-});
+}
 
-app.get('/register', checkCredentials, function(req, res, next) {
+function createUser(req, res, next) {
     var u = auth(req);
 
     User.findOne({username: u.name}, function(err, user){
@@ -100,11 +100,23 @@ app.get('/register', checkCredentials, function(req, res, next) {
             return res.json({error: 'User already exists'});
         }
     });
+}
+
+//App
+
+app.get('/', function(req, res) {
+    res.end('Hello world!');
 });
+
+app.get('/auth', checkCredentials, getToken);
+
+app.get('/register', checkCredentials, createUser);
 
 app.all('/api', tokenAuth, function(req, res) {
     return res.json({user: req.user.username});
 });
+
+//Server
 
 app.listen(3000, function () {
   console.log('Listening at port 3000');
