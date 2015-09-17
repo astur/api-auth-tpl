@@ -1,0 +1,15 @@
+{
+  "name": "api-auth-tpl",
+  "version": "0.0.1",
+  "description": "Basic/Token authentication for API on express and mongoose.",
+  "main": "index.js",
+  "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
+  "license": "MIT",
+  "dependencies": {
+    "basic-auth": "^1.0.3",
+    "crypto": "0.0.3",
+    "express": "^4.13.3",
+    "hat": "0.0.3",
+    "mongoose": "^4.1.7"
+  }
+}
