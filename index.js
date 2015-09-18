@@ -1,11 +1,6 @@
-var express = require('express');
-var app = express();
 var auth = require('basic-auth');
 var hat = require('hat');
-
 var User = require('./model');
-
-//Middlewares
 
 function checkCredentials(req, res, next) {
     var u = auth(req);
@@ -57,22 +52,26 @@ function createUser(req, res, next) {
     });
 }
 
-//App
+module.exports = {
+    checkCredentials: checkCredentials,
+    tokenAuth: tokenAuth,
+    getToken: getToken,
+    createUser: createUser
+}
 
-app.get('/', function(req, res) {
-    res.end('Hello world!');
-});
+if (require.main === module) {
+    var express = require('express');
+    var app = express();
 
-app.get('/auth', checkCredentials, getToken);
+    app.get('/auth', checkCredentials, getToken);
 
-app.get('/register', checkCredentials, createUser);
+    app.get('/register', checkCredentials, createUser);
 
-app.all('/api', tokenAuth, function(req, res) {
-    return res.json({user: req.user.username});
-});
+    app.all('/api', tokenAuth, function(req, res) {
+        return res.json({user: req.user.username});
+    });
 
-//Server
-
-app.listen(3000, function () {
-  console.log('Listening at port 3000');
-});
+    app.listen(3000, function () {
+      console.log('Listening at port 3000');
+    });
+}
